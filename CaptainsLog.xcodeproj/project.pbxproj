@@ -74,7 +74,6 @@
 				1A1111142B5F123600000001 /* Assets.xcassets */,
 				1A1111172B5F123600000001 /* CaptainsLog.xcdatamodeld */,
 			);
-			path = CaptainsLog;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
