@@ -111,7 +111,7 @@ struct TodaysLogView: View {
         withAnimation {
             let content = newTextEntry.trimmingCharacters(in: .whitespacesAndNewlines)
             
-            // Generate analytics for future ML training
+            // Basic analytics for current version (no ML dependencies)
             let analytics = analyticsManager.analyzeTextEntry(content)
             
             let newEntry = LogEntry(context: viewContext)
@@ -120,12 +120,6 @@ struct TodaysLogView: View {
             newEntry.type = "text"
             newEntry.content = content
             newEntry.stardate = generateStardate()
-            
-            // Store ML-ready metadata
-            newEntry.wordCount = Int32(analytics.wordCount)
-            newEntry.mood = analytics.mood
-            newEntry.topics = analytics.topics.joined(separator: ",")
-            newEntry.analysisMetadata = analytics.toJSONString()
             
             do {
                 try viewContext.save()
@@ -138,7 +132,7 @@ struct TodaysLogView: View {
     
     private func addVoiceEntry() {
         withAnimation {
-            // Get audio duration for analytics
+            // Get audio duration for basic analytics
             let audioDuration = audioManager.lastRecordingDuration ?? 0.0
             let analytics = analyticsManager.analyzeAudioEntry(
                 filename: audioManager.lastRecordingFilename ?? "",
@@ -151,10 +145,6 @@ struct TodaysLogView: View {
             newEntry.type = "voice"
             newEntry.audioFilename = audioManager.lastRecordingFilename
             newEntry.stardate = generateStardate()
-            
-            // Store ML-ready metadata
-            newEntry.duration = audioDuration
-            newEntry.analysisMetadata = analytics.toJSONString()
             
             do {
                 try viewContext.save()
