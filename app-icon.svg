@@ -1,0 +1,21 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#1a1a2e" rx="180"/>
+  
+  <!-- Star Trek inspired badge/communicator -->
+  <g transform="translate(512, 512)">
+    <!-- Main badge shape -->
+    <path d="M -120 -200 Q 0 -250 120 -200 L 120 -100 Q 120 -50 80 0 L 160 120 Q 180 140 160 160 L 80 80 Q 40 120 0 120 Q -40 120 -80 80 L -160 160 Q -180 140 -160 120 L -80 0 Q -120 -50 -120 -100 Z" fill="#ffd700" stroke="#ffed4e" stroke-width="4"/>
+    
+    <!-- Inner design -->
+    <ellipse cx="0" cy="-120" rx="60" ry="40" fill="#1a1a2e"/>
+    <circle cx="0" cy="-120" r="20" fill="#00d4ff"/>
+    
+    <!-- Side elements -->
+    <rect x="-100" y="-60" width="200" height="8" fill="#1a1a2e" rx="4"/>
+    <rect x="-80" y="-40" width="160" height="6" fill="#1a1a2e" rx="3"/>
+    
+    <!-- Bottom star -->
+    <polygon points="0,40 15,70 45,70 25,90 30,120 0,105 -30,120 -25,90 -45,70 -15,70" fill="#1a1a2e"/>
+  </g>
+</svg>
