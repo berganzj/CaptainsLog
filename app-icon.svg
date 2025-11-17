@@ -1,21 +1,39 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="1024" height="1024" fill="#1a1a2e" rx="180"/>
+  <!-- Deep space background -->
+  <rect width="1024" height="1024" fill="#0a0a0a" rx="180"/>
   
-  <!-- Star Trek inspired badge/communicator -->
-  <g transform="translate(512, 512)">
-    <!-- Main badge shape -->
-    <path d="M -120 -200 Q 0 -250 120 -200 L 120 -100 Q 120 -50 80 0 L 160 120 Q 180 140 160 160 L 80 80 Q 40 120 0 120 Q -40 120 -80 80 L -160 160 Q -180 140 -160 120 L -80 0 Q -120 -50 -120 -100 Z" fill="#ffd700" stroke="#ffed4e" stroke-width="4"/>
+  <!-- Starfield -->
+  <circle cx="150" cy="180" r="2" fill="#ffffff" opacity="0.8"/>
+  <circle cx="300" cy="120" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="800" cy="200" r="2" fill="#ffffff" opacity="0.9"/>
+  <circle cx="700" cy="150" r="1" fill="#ffffff" opacity="0.7"/>
+  <circle cx="180" cy="800" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="850" cy="750" r="2" fill="#ffffff" opacity="0.6"/>
+  <circle cx="400" cy="850" r="1" fill="#ffffff" opacity="0.9"/>
+  <circle cx="650" cy="800" r="1.5" fill="#ffffff" opacity="0.7"/>
+  
+  <!-- Classic Starfleet Delta Badge -->
+  <g transform="translate(512, 480)">
+    <!-- Main delta shape (classic Starfleet insignia) -->
+    <path d="M 0 -180 L 140 140 L 0 80 L -140 140 Z" fill="#c9b037" stroke="#ffd700" stroke-width="6"/>
     
-    <!-- Inner design -->
-    <ellipse cx="0" cy="-120" rx="60" ry="40" fill="#1a1a2e"/>
-    <circle cx="0" cy="-120" r="20" fill="#00d4ff"/>
+    <!-- Inner highlight -->
+    <path d="M 0 -150 L 110 120 L 0 70 L -110 120 Z" fill="#ffd700"/>
     
-    <!-- Side elements -->
-    <rect x="-100" y="-60" width="200" height="8" fill="#1a1a2e" rx="4"/>
-    <rect x="-80" y="-40" width="160" height="6" fill="#1a1a2e" rx="3"/>
+    <!-- Center dividing line -->
+    <line x1="0" y1="-150" x2="0" y2="70" stroke="#c9b037" stroke-width="4"/>
     
-    <!-- Bottom star -->
-    <polygon points="0,40 15,70 45,70 25,90 30,120 0,105 -30,120 -25,90 -45,70 -15,70" fill="#1a1a2e"/>
+    <!-- Small center star -->
+    <polygon points="0,-60 8,-40 28,-40 14,-26 18,-6 0,-16 -18,-6 -14,-26 -28,-40 -8,-40" fill="#0a0a0a"/>
   </g>
+  
+  <!-- Captain's Log text -->
+  <text x="512" y="680" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#ffd700">CAPTAIN'S</text>
+  <text x="512" y="730" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#ffd700">LOG</text>
+  
+  <!-- Subtle corner accents -->
+  <path d="M 180 180 L 180 120 L 240 120" stroke="#ffd700" stroke-width="3" fill="none" opacity="0.5"/>
+  <path d="M 844 180 L 844 120 L 784 120" stroke="#ffd700" stroke-width="3" fill="none" opacity="0.5"/>
+  <path d="M 180 844 L 180 904 L 240 904" stroke="#ffd700" stroke-width="3" fill="none" opacity="0.5"/>
+  <path d="M 844 844 L 844 904 L 784 904" stroke="#ffd700" stroke-width="3" fill="none" opacity="0.5"/>
 </svg>
