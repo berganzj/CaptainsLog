@@ -42,8 +42,8 @@ LogEntry Entity:
 ## Development
 
 ### Requirements
-- iOS 17.0+
-- Xcode 15.0+
+- iOS 18.0+
+- Xcode 16.0+
 - Swift 5.0+
 
 ### Setup

@@ -34,8 +34,13 @@ class AudioManager: NSObject, ObservableObject {
     
     private func setupAudioSession() {
         do {
-            try recordingSession.setCategory(.playAndRecord, mode: .default)
+            try recordingSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
             try recordingSession.setActive(true)
+            
+            // iOS 18: Enhanced audio session configuration
+            if #available(iOS 18.0, *) {
+                try recordingSession.setPrefersNoInterruptionsFromSystemAlerts(true)
+            }
         } catch {
             print("Failed to setup audio session: \(error)")
         }
