@@ -11,6 +11,7 @@ import CoreData
 struct TodaysLogView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var audioManager: AudioManager
+    @EnvironmentObject private var dayTransitionManager: DayTransitionManager
     @StateObject private var analyticsManager = AnalyticsManager()
     @State private var showingNewEntry = false
     @State private var newTextEntry = ""
@@ -18,11 +19,17 @@ struct TodaysLogView: View {
     
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \LogEntry.timestamp, ascending: false)],
-        predicate: NSPredicate(format: "timestamp >= %@ AND timestamp < %@", 
-                             Calendar.current.startOfDay(for: Date()) as NSDate,
-                             Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))! as NSDate),
         animation: .default)
-    private var todaysEntries: FetchedResults<LogEntry>
+    private var allEntries: FetchedResults<LogEntry>
+    
+    // Computed property for today's entries that updates with day transitions
+    private var todaysEntries: [LogEntry] {
+        let bounds = dayTransitionManager.getCurrentDayBounds()
+        return allEntries.filter { entry in
+            guard let timestamp = entry.timestamp else { return false }
+            return timestamp >= bounds.start && timestamp < bounds.end
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -45,7 +52,7 @@ struct TodaysLogView: View {
                     Spacer()
                 } else {
                     List {
-                        ForEach(todaysEntries) { entry in
+                        ForEach(todaysEntries, id: \.id) { entry in
                             LogEntryRow(entry: entry)
                         }
                         .onDelete(perform: deleteEntries)
@@ -89,6 +96,12 @@ struct TodaysLogView: View {
             }
             .navigationTitle("Today's Log")
             .navigationBarTitleDisplayMode(.large)
+            .onChange(of: dayTransitionManager.shouldRefreshToday) { shouldRefresh in
+                if shouldRefresh {
+                    // Force UI refresh when day changes
+                    print("Day transition detected in TodaysLogView - refreshing")
+                }
+            }
         }
     }
     
@@ -144,6 +157,7 @@ struct TodaysLogView: View {
             newEntry.timestamp = Date()
             newEntry.type = "voice"
             newEntry.audioFilename = audioManager.lastRecordingFilename
+            newEntry.audioTranscription = audioManager.lastRecordingTranscription
             newEntry.stardate = generateStardate()
             
             do {
@@ -156,7 +170,8 @@ struct TodaysLogView: View {
     
     private func deleteEntries(offsets: IndexSet) {
         withAnimation {
-            offsets.map { todaysEntries[$0] }.forEach { entry in
+            let entriesToDelete = offsets.map { todaysEntries[$0] }
+            entriesToDelete.forEach { entry in
                 if entry.type == "voice", let filename = entry.audioFilename {
                     audioManager.deleteRecording(filename: filename)
                 }
@@ -184,5 +199,6 @@ struct TodaysLogView_Previews: PreviewProvider {
         TodaysLogView()
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
             .environmentObject(AudioManager())
+            .environmentObject(DayTransitionManager())
     }
 }

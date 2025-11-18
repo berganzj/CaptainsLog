@@ -12,6 +12,8 @@ struct LogEntryRow: View {
     let entry: LogEntry
     @EnvironmentObject private var audioManager: AudioManager
     @State private var isPlaying = false
+    @State private var showingTranscription = false
+    @State private var isTranscribing = false
     
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -52,23 +54,70 @@ struct LogEntryRow: View {
                     .buttonStyle(BorderlessButtonStyle())
                 }
             } else if entry.type == "voice" {
-                HStack {
-                    Image(systemName: "waveform")
-                        .foregroundColor(.orange)
-                        .font(.title2)
-                    
-                    Text("Voice Recording")
-                        .font(.body)
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Button(action: togglePlayback) {
-                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "waveform")
+                            .foregroundColor(.orange)
+                            .font(.title2)
+                        
+                        Text("Voice Recording")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        // Transcription toggle button
+                        if entry.audioTranscription != nil {
+                            Button(action: { showingTranscription.toggle() }) {
+                                Image(systemName: showingTranscription ? "text.bubble.fill" : "text.bubble")
+                                    .foregroundColor(.green)
+                                    .font(.title2)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                        }
+                        
+                        Button(action: togglePlayback) {
+                            Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.title)
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
                     }
-                    .buttonStyle(BorderlessButtonStyle())
+                    
+                    // Show transcription if available and toggled
+                    if showingTranscription, let transcription = entry.audioTranscription {
+                        HStack {
+                            Text(transcription)
+                                .font(.body)
+                                .padding(8)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(8)
+                            
+                            Button(action: { audioManager.speakText(transcription) }) {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.title2)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                        }
+                    }
+                    
+                    // Transcription status
+                    if isTranscribing {
+                        HStack {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Transcribing...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else if entry.audioTranscription == nil {
+                        Button("Transcribe") {
+                            transcribeAudio()
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
                 }
             }
         }
@@ -98,6 +147,22 @@ struct LogEntryRow: View {
         } else {
             audioManager.playRecording(filename: filename) { success in
                 isPlaying = success
+            }
+        }
+    }
+    
+    private func transcribeAudio() {
+        guard let filename = entry.audioFilename else { return }
+        
+        isTranscribing = true
+        audioManager.transcribeExistingRecording(filename: filename) { [weak entry] transcription in
+            DispatchQueue.main.async {
+                self.isTranscribing = false
+                if let transcription = transcription {
+                    entry?.audioTranscription = transcription
+                    // Save the context if available
+                    try? entry?.managedObjectContext?.save()
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var audioManager = AudioManager()
+    @StateObject private var dayTransitionManager = DayTransitionManager()
     
     var body: some View {
         TabView {
@@ -20,6 +21,7 @@ struct ContentView: View {
                 }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(audioManager)
+                .environmentObject(dayTransitionManager)
             
             HistoryView()
                 .tabItem {
@@ -28,6 +30,7 @@ struct ContentView: View {
                 }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(audioManager)
+                .environmentObject(dayTransitionManager)
         }
         .accentColor(.blue)
     }

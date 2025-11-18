@@ -11,6 +11,7 @@ import CoreData
 struct HistoryView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var audioManager: AudioManager
+    @EnvironmentObject private var dayTransitionManager: DayTransitionManager
     @State private var selectedDate: Date = Date()
     @State private var showingDatePicker = false
     
@@ -70,6 +71,12 @@ struct HistoryView: View {
                     Button("Filter") {
                         showingDatePicker = true
                     }
+                }
+            }
+            .onChange(of: dayTransitionManager.shouldRefreshToday) { shouldRefresh in
+                if shouldRefresh {
+                    // Force UI refresh when day changes for proper "Today"/"Yesterday" labels
+                    print("Day transition detected in HistoryView - refreshing labels")
                 }
             }
         }
@@ -149,5 +156,6 @@ struct HistoryView_Previews: PreviewProvider {
         HistoryView()
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
             .environmentObject(AudioManager())
+            .environmentObject(DayTransitionManager())
     }
 }

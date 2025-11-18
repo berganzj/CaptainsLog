@@ -7,19 +7,23 @@
 
 import Foundation
 import AVFoundation
+import Combine
 
 class AudioManager: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var isPlaying = false
     @Published var currentlyPlayingFile: String? = nil
+    @Published var isTranscribing = false
     
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
     private var speechSynthesizer = AVSpeechSynthesizer()
     private var recordingStartTime: Date?
+    private var whisperManager = WhisperManager()
     
     var lastRecordingFilename: String?
     var lastRecordingDuration: Double?
+    var lastRecordingTranscription: String?
     
     private var recordingSession: AVAudioSession {
         AVAudioSession.sharedInstance()
@@ -29,7 +33,15 @@ class AudioManager: NSObject, ObservableObject {
         super.init()
         setupAudioSession()
         speechSynthesizer.delegate = self
+        
+        // Monitor transcription state from WhisperManager
+        whisperManager.$isTranscribing
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.isTranscribing, on: self)
+            .store(in: &cancellables)
     }
+    
+    private var cancellables = Set<AnyCancellable>()
     
     private func setupAudioSession() {
         do {
@@ -100,7 +112,36 @@ class AudioManager: NSObject, ObservableObject {
         
         DispatchQueue.main.async {
             self.isRecording = false
+            
+            // Trigger transcription if we have a recording
+            if let filename = self.lastRecordingFilename {
+                self.transcribeRecording(filename: filename)
+            }
+            
             completion(true)
+        }
+    }
+    
+    /// Transcribe the recorded audio using WhisperManager
+    private func transcribeRecording(filename: String) {
+        let url = getDocumentsDirectory().appendingPathComponent(filename)
+        
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("Audio file not found for transcription: \(filename)")
+            return
+        }
+        
+        whisperManager.transcribeAudio(from: url) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let transcription):
+                    self?.lastRecordingTranscription = transcription
+                    print("Transcription successful: \(transcription)")
+                case .failure(let error):
+                    self?.lastRecordingTranscription = nil
+                    print("Transcription failed: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
@@ -157,6 +198,28 @@ class AudioManager: NSObject, ObservableObject {
             try FileManager.default.removeItem(at: url)
         } catch {
             print("Failed to delete recording: \(error)")
+        }
+    }
+    
+    /// Transcribe an existing recording file
+    func transcribeExistingRecording(filename: String, completion: @escaping (String?) -> Void) {
+        let url = getDocumentsDirectory().appendingPathComponent(filename)
+        
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            completion(nil)
+            return
+        }
+        
+        whisperManager.transcribeAudio(from: url) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let transcription):
+                    completion(transcription)
+                case .failure(let error):
+                    print("Transcription failed: \(error.localizedDescription)")
+                    completion(nil)
+                }
+            }
         }
     }
     

@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23B74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="NO" userDefinedModelVersionIdentifier="">
     <entity name="LogEntry" representedClassName="LogEntry" syncable="YES" codeGenerationType="class">
         <attribute name="audioFilename" optional="YES" attributeType="String"/>
+        <attribute name="audioTranscription" optional="YES" attributeType="String"/>
         <attribute name="content" optional="YES" attributeType="String"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="stardate" optional="YES" attributeType="String"/>
@@ -9,6 +10,6 @@
         <attribute name="type" optional="YES" attributeType="String"/>
     </entity>
     <elements>
-        <element name="LogEntry" positionX="-63" positionY="-18" width="128" height="119"/>
+        <element name="LogEntry" positionX="-63" positionY="-18" width="128" height="134"/>
     </elements>
 </model>
