@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 import Combine
+import CoreData
 
 class AudioManager: NSObject, ObservableObject {
     @Published var isRecording = false
@@ -20,6 +21,7 @@ class AudioManager: NSObject, ObservableObject {
     private var speechSynthesizer = AVSpeechSynthesizer()
     private var recordingStartTime: Date?
     private var whisperManager = WhisperManager()
+    private var transcriptionQueue: TranscriptionQueue?
     
     var lastRecordingFilename: String?
     var lastRecordingDuration: Double?
@@ -39,6 +41,14 @@ class AudioManager: NSObject, ObservableObject {
             .receive(on: DispatchQueue.main)
             .assign(to: \.isTranscribing, on: self)
             .store(in: &cancellables)
+    }
+    
+    /// Configure transcription queue (called from ContentView)
+    func configureTranscriptionQueue(persistenceController: PersistenceController) {
+        transcriptionQueue = TranscriptionQueue(
+            whisperManager: whisperManager,
+            persistenceController: persistenceController
+        )
     }
     
     private var cancellables = Set<AnyCancellable>()
@@ -122,7 +132,7 @@ class AudioManager: NSObject, ObservableObject {
         }
     }
     
-    /// Transcribe the recorded audio using WhisperManager
+    /// Transcribe the recorded audio using background queue
     private func transcribeRecording(filename: String) {
         let url = getDocumentsDirectory().appendingPathComponent(filename)
         
@@ -131,15 +141,16 @@ class AudioManager: NSObject, ObservableObject {
             return
         }
         
+        // For immediate feedback, try direct transcription first
         whisperManager.transcribeAudio(from: url) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let transcription):
                     self?.lastRecordingTranscription = transcription
-                    print("Transcription successful: \(transcription)")
+                    print("Immediate transcription successful: \(transcription)")
                 case .failure(let error):
                     self?.lastRecordingTranscription = nil
-                    print("Transcription failed: \(error.localizedDescription)")
+                    print("Immediate transcription failed: \(error.localizedDescription)")
                 }
             }
         }
@@ -221,6 +232,21 @@ class AudioManager: NSObject, ObservableObject {
                 }
             }
         }
+    }
+    
+    /// Add entry to background transcription queue
+    func enqueueForTranscription(_ entry: LogEntry) {
+        transcriptionQueue?.enqueue(entry)
+    }
+    
+    /// Process all entries without transcriptions
+    func transcribeAllMissing() {
+        transcriptionQueue?.transcribeAllMissing()
+    }
+    
+    /// Get transcription queue for UI binding
+    var transcriptionQueuePublisher: TranscriptionQueue? {
+        return transcriptionQueue
     }
     
     private func getRecordingURL() -> URL {

@@ -51,11 +51,16 @@ struct TodaysLogView: View {
                     }
                     Spacer()
                 } else {
-                    List {
-                        ForEach(todaysEntries, id: \.id) { entry in
-                            LogEntryRow(entry: entry)
+                    VStack {
+                        TranscriptionStatusView()
+                            .padding(.horizontal)
+                        
+                        List {
+                            ForEach(todaysEntries, id: \.id) { entry in
+                                LogEntryRow(entry: entry)
+                            }
+                            .onDelete(perform: deleteEntries)
                         }
-                        .onDelete(perform: deleteEntries)
                     }
                 }
                 
@@ -162,6 +167,11 @@ struct TodaysLogView: View {
             
             do {
                 try viewContext.save()
+                
+                // Add to transcription queue if no immediate transcription
+                if newEntry.audioTranscription == nil {
+                    audioManager.enqueueForTranscription(newEntry)
+                }
             } catch {
                 print("Error saving voice entry: \(error)")
             }

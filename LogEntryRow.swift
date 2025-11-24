@@ -60,9 +60,13 @@ struct LogEntryRow: View {
                             .foregroundColor(.orange)
                             .font(.title2)
                         
-                        Text("Voice Recording")
-                            .font(.body)
-                            .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Voice Recording")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                            
+                            TranscriptionIndicator(entry: entry)
+                        }
                         
                         Spacer()
                         
