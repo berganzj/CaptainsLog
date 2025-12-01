@@ -32,6 +32,12 @@ class WhisperManager: NSObject, ObservableObject {
         let duration: TimeInterval
         let wordCount: Int
         let retryAttempt: Int
+
+    struct TranscriptionSegment {
+        let text: String
+        let confidence: Float
+        let startTime: TimeInterval
+        let endTime: TimeInterval
     }
     
     override init() {
