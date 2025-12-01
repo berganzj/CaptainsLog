@@ -177,9 +177,7 @@ struct TranscriptionStatusView_Previews: PreviewProvider {
             
             Divider()
             
-            let sampleEntry = LogEntry()
-            sampleEntry.audioTranscription = "Captain's Log, Stardate 2401.234"
-            TranscriptionIndicator(entry: sampleEntry)
+            TranscriptionIndicator(entry: LogEntry())
         }
         .padding()
     }
