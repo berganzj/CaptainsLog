@@ -32,7 +32,8 @@ class WhisperManager: NSObject, ObservableObject {
         let duration: TimeInterval
         let wordCount: Int
         let retryAttempt: Int
-
+    }
+    
     struct TranscriptionSegment {
         let text: String
         let confidence: Float
@@ -49,98 +50,90 @@ class WhisperManager: NSObject, ObservableObject {
     func requestTranscriptionPermission() {
         SFSpeechRecognizer.requestAuthorization { authStatus in
             DispatchQueue.main.async {
-                self.transcriptionAvailable = authStatus == .authorized
+                switch authStatus {
+                case .authorized:
+                    self.transcriptionAvailable = true
+                    print("Speech recognition authorized")
+                case .denied, .restricted, .notDetermined:
+                    self.transcriptionAvailable = false
+                    print("Speech recognition not authorized: \(authStatus)")
+                @unknown default:
+                    self.transcriptionAvailable = false
+                    print("Speech recognition unknown status: \(authStatus)")
+                }
             }
         }
     }
     
-    /// Transcribe audio file to text with retry logic and quality metrics
-    /// - Parameters:
-    ///   - audioURL: URL of the audio file to transcribe
-    ///   - completion: Completion handler with transcribed text or error
-    func transcribeAudio(from audioURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
+    /// Transcribe audio with retry logic
+    func transcribeAudioWithRetry(from audioURL: URL, completion: @escaping (Result<TranscriptionResult, Error>) -> Void) {
         transcribeAudioWithRetry(from: audioURL, attempt: 1, completion: completion)
     }
     
-    /// Internal method with retry logic
-    private func transcribeAudioWithRetry(from audioURL: URL, attempt: Int, completion: @escaping (Result<String, Error>) -> Void) {
-        guard transcriptionAvailable,
-              let speechRecognizer = speechRecognizer,
-              speechRecognizer.isAvailable else {
-            completion(.failure(WhisperError.speechRecognitionUnavailable))
+    private func transcribeAudioWithRetry(from audioURL: URL, attempt: Int, completion: @escaping (Result<TranscriptionResult, Error>) -> Void) {
+        guard attempt <= maxRetryAttempts else {
+            completion(.failure(TranscriptionError.maxRetriesExceeded))
             return
         }
         
-        // Validate audio file exists
-        guard FileManager.default.fileExists(atPath: audioURL.path) else {
-            completion(.failure(WhisperError.audioFileNotFound))
+        guard transcriptionAvailable else {
+            completion(.failure(TranscriptionError.notAuthorized))
             return
         }
-        
-        let request = SFSpeechURLRecognitionRequest(url: audioURL)
-        request.shouldReportPartialResults = true // Enable progress tracking
-        request.taskHint = .dictation
-        request.contextualStrings = ["Captain's Log", "Stardate", "Enterprise", "Federation"] // Star Trek context
         
         DispatchQueue.main.async {
             self.isTranscribing = true
             self.currentProgress = 0.0
         }
         
-        let startTime = Date()
+        let request = SFSpeechURLRecognitionRequest(url: audioURL)
+        request.shouldReportPartialResults = true
         
-        recognitionTask = speechRecognizer.recognitionTask(with: request) { [weak self] result, error in
-            guard let self = self else { return }
-            
-            // Update progress for partial results
+        recognitionTask = speechRecognizer?.recognitionTask(with: request) { result, error in
             if let result = result {
                 DispatchQueue.main.async {
-                    self.currentProgress = result.isFinal ? 1.0 : min(0.8, Double(result.bestTranscription.formattedString.count) / 100.0)
+                    self.currentProgress = result.isFinal ? 1.0 : 0.5
                 }
                 
                 if result.isFinal {
-                    let duration = Date().timeIntervalSince(startTime)
-                    let transcriptionText = result.bestTranscription.formattedString
                     let confidence = self.calculateConfidence(from: result)
-                    
-                    DispatchQueue.main.async {
-                        self.isTranscribing = false
-                        self.currentProgress = 1.0
-                    }
-                    
-                    // Create quality metrics
-                    let qualityResult = TranscriptionResult(
-                        text: transcriptionText,
+                    let transcriptionResult = TranscriptionResult(
+                        text: result.bestTranscription.formattedString,
                         confidence: confidence,
-                        duration: duration,
-                        wordCount: transcriptionText.split(separator: " ").count,
+                        duration: 0.0, // Audio duration would need to be calculated
+                        wordCount: result.bestTranscription.segments.count,
                         retryAttempt: attempt
                     )
                     
-                    print("Transcription completed - Confidence: \(confidence), Duration: \(duration)s, Words: \(qualityResult.wordCount), Attempt: \(attempt)")
-                    
-                    // Check if quality is acceptable or if we should retry
-                    if self.isQualityAcceptable(qualityResult) || attempt >= self.maxRetryAttempts {
-                        completion(.success(transcriptionText))
-                    } else {
-                        print("Transcription quality low, retrying (attempt \(attempt + 1))")
+                    if self.isQualityAcceptable(transcriptionResult) {
+                        DispatchQueue.main.async {
+                            self.isTranscribing = false
+                            self.currentProgress = 1.0
+                        }
+                        completion(.success(transcriptionResult))
+                    } else if attempt < self.maxRetryAttempts {
+                        print("Transcription quality below threshold, retrying attempt \(attempt + 1)")
+                        DispatchQueue.main.async {
+                            self.isTranscribing = false
+                        }
                         DispatchQueue.main.asyncAfter(deadline: .now() + self.retryDelay) {
                             self.transcribeAudioWithRetry(from: audioURL, attempt: attempt + 1, completion: completion)
                         }
+                    } else {
+                        DispatchQueue.main.async {
+                            self.isTranscribing = false
+                        }
+                        completion(.success(transcriptionResult)) // Return best attempt even if quality is low
                     }
-                    return
                 }
             }
             
             if let error = error {
                 DispatchQueue.main.async {
                     self.isTranscribing = false
-                    self.currentProgress = 0.0
                 }
-                
-                // Check if we should retry on error
-                if attempt < self.maxRetryAttempts && self.isRetryableError(error) {
-                    print("Transcription failed with retryable error, attempt \(attempt + 1): \(error.localizedDescription)")
+                if attempt < self.maxRetryAttempts {
+                    print("Transcription failed on attempt \(attempt), retrying: \(error.localizedDescription)")
                     DispatchQueue.main.asyncAfter(deadline: .now() + self.retryDelay) {
                         self.transcribeAudioWithRetry(from: audioURL, attempt: attempt + 1, completion: completion)
                     }
@@ -151,41 +144,29 @@ class WhisperManager: NSObject, ObservableObject {
         }
     }
     
-    /// Clean up transcription resources
-    func cleanup() {
+    /// Stop any ongoing transcription
+    func stopTranscription() {
         recognitionTask?.cancel()
         recognitionRequest?.endAudio()
         audioEngine.stop()
-        if audioEngine.inputNode.numberOfInputs > 0 {
+        if audioEngine.inputNode.isInstalled {
             audioEngine.inputNode.removeTap(onBus: 0)
         }
         
         DispatchQueue.main.async {
             self.isTranscribing = false
-            self.currentProgress = 0.0
         }
     }
     
-    /// Transcribe multiple audio files in sequence
-    func transcribeMultipleAudio(urls: [URL], progressUpdate: @escaping (Int, Int) -> Void, completion: @escaping ([(URL, Result<String, Error>)]) -> Void) {
-        var results: [(URL, Result<String, Error>)] = []
+    /// Calculate confidence score from recognition result
+    private func calculateConfidence(from result: SFSpeechRecognitionResult) -> Float {
+        guard !result.bestTranscription.segments.isEmpty else { return 0.0 }
         
-        func transcribeNext(index: Int) {
-            guard index < urls.count else {
-                completion(results)
-                return
-            }
-            
-            let url = urls[index]
-            progressUpdate(index + 1, urls.count)
-            
-            transcribeAudio(from: url) { result in
-                results.append((url, result))
-                transcribeNext(index: index + 1)
-            }
+        let totalConfidence = result.bestTranscription.segments.reduce(0.0) { total, segment in
+            return total + segment.confidence
         }
         
-        transcribeNext(index: 0)
+        return totalConfidence / Float(result.bestTranscription.segments.count)
     }
     
     /// Calculate confidence score from segments
@@ -200,75 +181,79 @@ class WhisperManager: NSObject, ObservableObject {
     private func isQualityAcceptable(_ result: TranscriptionResult) -> Bool {
         // Quality criteria:
         // 1. Confidence above threshold
-        // 2. Minimum word count (not just silence)
-        // 3. Reasonable duration (not too fast/slow)
+        // 2. Reasonable word count
+        // 3. Text not empty
         
         let minConfidence: Float = 0.3
-        let minWords = 2
-        let maxDurationPerWord: TimeInterval = 2.0
+        let minWordCount = 1
         
-        guard result.confidence >= minConfidence else {
-            print("Low confidence: \(result.confidence)")
-            return false
-        }
-        
-        guard result.wordCount >= minWords else {
-            print("Too few words: \(result.wordCount)")
-            return false
-        }
-        
-        let avgTimePerWord = result.duration / Double(result.wordCount)
-        guard avgTimePerWord <= maxDurationPerWord else {
-            print("Speaking too slow: \(avgTimePerWord)s per word")
-            return false
-        }
-        
-        return true
+        return result.confidence >= minConfidence &&
+               result.wordCount >= minWordCount &&
+               !result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    /// Check if error is retryable
-    private func isRetryableError(_ error: Error) -> Bool {
-        let nsError = error as NSError
+    /// Transcribe audio using batch processing for multiple files
+    func transcribeBatch(urls: [URL], completion: @escaping ([Result<TranscriptionResult, Error>]) -> Void) {
+        var results: [Result<TranscriptionResult, Error>] = Array(repeating: .failure(TranscriptionError.notStarted), count: urls.count)
+        let dispatchGroup = DispatchGroup()
         
-        // Retryable error codes
-        let retryableCodes = [
-            201, // Network error
-            203, // Audio format error (might be temporary)
-            209, // No audio input
-            216, // Recognition service unavailable
-        ]
+        for (index, url) in urls.enumerated() {
+            dispatchGroup.enter()
+            transcribeAudioWithRetry(from: url) { result in
+                results[index] = result
+                dispatchGroup.leave()
+            }
+        }
         
-        return retryableCodes.contains(nsError.code)
+        dispatchGroup.notify(queue: .main) {
+            completion(results)
+        }
+    }
+    
+    /// Fallback transcription method (compatible with existing code)
+    func transcribeAudio(from audioURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
+        transcribeAudioWithRetry(from: audioURL) { result in
+            switch result {
+            case .success(let transcriptionResult):
+                completion(.success(transcriptionResult.text))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    /// Transcribe using OpenAI Whisper (placeholder for future implementation)
+    func transcribeWithWhisper(audioURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
+        // TODO: Implement OpenAI Whisper integration
+        // This will provide better accuracy and offline capabilities
+        // For now, fallback to Apple's Speech framework
+        transcribeAudio(from: audioURL, completion: completion)
     }
 }
 
 // MARK: - Error Types
-enum WhisperError: LocalizedError {
-    case speechRecognitionUnavailable
-    case audioFileNotFound
-    case transcriptionFailed
+enum TranscriptionError: LocalizedError {
+    case notAuthorized
+    case audioEngineError
+    case recognitionFailed
+    case maxRetriesExceeded
+    case notStarted
+    case invalidAudioFile
     
     var errorDescription: String? {
         switch self {
-        case .speechRecognitionUnavailable:
-            return "Speech recognition is not available or authorized"
-        case .audioFileNotFound:
-            return "Audio file could not be found"
-        case .transcriptionFailed:
-            return "Transcription process failed"
+        case .notAuthorized:
+            return "Speech recognition not authorized"
+        case .audioEngineError:
+            return "Audio engine error"
+        case .recognitionFailed:
+            return "Speech recognition failed"
+        case .maxRetriesExceeded:
+            return "Maximum retry attempts exceeded"
+        case .notStarted:
+            return "Transcription not started"
+        case .invalidAudioFile:
+            return "Invalid audio file"
         }
-    }
-}
-
-// MARK: - Future Whisper Integration Placeholder
-extension WhisperManager {
-    /// Placeholder for future OpenAI Whisper integration
-    /// This method will eventually replace the Apple Speech framework implementation
-    /// when the dependency for OpenAI Whisper is ready
-    private func transcribeWithWhisper(from audioURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        // TODO: Integrate OpenAI Whisper when dependencies are ready
-        // This will provide better accuracy and offline capabilities
-        // For now, fallback to Apple's Speech framework
-        transcribeAudio(from: audioURL, completion: completion)
     }
 }
