@@ -87,16 +87,16 @@ class BackupManager: ObservableObject {
             let fetchRequest: NSFetchRequest<LogEntry> = LogEntry.fetchRequest()
             let entries = try context.fetch(fetchRequest)
             
-            let exportData = entries.map { entry in
-                [
-                    "id": entry.id?.uuidString ?? "",
-                    "timestamp": entry.timestamp?.timeIntervalSince1970 ?? 0,
-                    "type": entry.type ?? "",
-                    "content": entry.content ?? "",
-                    "audioFilename": entry.audioFilename ?? "",
-                    "audioTranscription": entry.audioTranscription ?? "",
-                    "stardate": entry.stardate ?? ""
-                ]
+            let exportData = entries.map { entry -> [String: Any] in
+                var entryData: [String: Any] = [:]
+                entryData["id"] = entry.id?.uuidString ?? ""
+                entryData["timestamp"] = entry.timestamp?.timeIntervalSince1970 ?? 0
+                entryData["type"] = entry.type ?? ""
+                entryData["content"] = entry.content ?? ""
+                entryData["audioFilename"] = entry.audioFilename ?? ""
+                entryData["audioTranscription"] = entry.audioTranscription ?? ""
+                entryData["stardate"] = entry.stardate ?? ""
+                return entryData
             }
             
             let jsonData = try JSONSerialization.data(withJSONObject: exportData, options: .prettyPrinted)
