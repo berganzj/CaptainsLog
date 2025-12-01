@@ -70,9 +70,6 @@ struct PersistenceController {
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
-        // Enable persistent history tracking for cloud sync
-        container.viewContext.setValue(true, forKey: "NSPersistentHistoryTrackingKey")
-        container.viewContext.setValue(true, forKey: "NSPersistentStoreRemoteChangeNotificationPostOptionKey")
     }
     
     /// Configure persistent store with migration and cloud sync settings
