@@ -53,7 +53,7 @@ class BackupManager: ObservableObject {
         try fileManager.createDirectory(at: backupDirectory, withIntermediateDirectories: true)
         
         let timestamp = ISO8601DateFormatter().string(from: Date())
-        let backupFolder = backupDirectory.appendingPathComponent("backup_\\(timestamp)")
+        let backupFolder = backupDirectory.appendingPathComponent("backup_\(timestamp)")
         try fileManager.createDirectory(at: backupFolder, withIntermediateDirectories: true)
         
         // Backup Core Data
@@ -75,7 +75,7 @@ class BackupManager: ObservableObject {
         }
         
         await updateProgress(1.0)
-        print("✅ Backup completed successfully at: \\(backupFolder.path)")
+        print("✅ Backup completed successfully at: \(backupFolder.path)")
     }
     
     /// Backup Core Data store
@@ -124,7 +124,7 @@ class BackupManager: ObservableObject {
             await updateProgress(progress)
         }
         
-        print("Backed up \\(totalFiles) audio files")
+        print("Backed up \(totalFiles) audio files")
     }
     
     /// Create backup metadata
@@ -308,7 +308,8 @@ class BackupManager: ObservableObject {
 
 // MARK: - Supporting Types
 
-struct BackupInfo {
+struct BackupInfo: Identifiable {
+    let id = UUID()
     let url: URL
     let timestamp: Date
     let size: Int64

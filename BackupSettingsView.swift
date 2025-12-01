@@ -57,7 +57,7 @@ struct BackupSettingsView: View {
                             .foregroundColor(.secondary)
                             .italic()
                     } else {
-                        ForEach(availableBackups, id: \\.url) { backup in
+                        ForEach(availableBackups) { backup in
                             BackupRowView(backup: backup) {
                                 selectedBackup = backup
                                 showingRestoreAlert = true
@@ -123,7 +123,7 @@ struct BackupSettingsView: View {
                 }
             } message: {
                 if let backup = selectedBackup {
-                    Text("This will replace all current data with the backup from \\(backup.formattedDate). This cannot be undone.")
+                    Text("This will replace all current data with the backup from \(backup.formattedDate). This cannot be undone.")
                 }
             }
             .alert("Error", isPresented: $showingError) {

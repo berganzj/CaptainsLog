@@ -179,3 +179,4 @@ struct PersistenceController {
             return false
         }
     }
+}
