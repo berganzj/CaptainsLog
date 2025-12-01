@@ -149,10 +149,11 @@ class WhisperManager: NSObject, ObservableObject {
         recognitionTask?.cancel()
         recognitionRequest?.endAudio()
         audioEngine.stop()
-        if audioEngine.inputNode.isInstalled {
-            audioEngine.inputNode.removeTap(onBus: 0)
+        do {
+            try audioEngine.inputNode.removeTap(onBus: 0)
+        } catch {
+            // Tap was not installed, ignore error
         }
-        
         DispatchQueue.main.async {
             self.isTranscribing = false
         }
