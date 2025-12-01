@@ -180,7 +180,12 @@ class WhisperManager: NSObject, ObservableObject {
         }
         
         transcribeNext(index: 0)
-    }   
+    }
+    
+    /// Calculate confidence score from segments
+    private func calculateConfidence(from segments: [TranscriptionSegment]) -> Float {
+        guard !segments.isEmpty else { return 0.0 }
+        
         let totalConfidence = segments.reduce(0.0) { $0 + $1.confidence }
         return totalConfidence / Float(segments.count)
     }

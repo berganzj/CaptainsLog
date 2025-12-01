@@ -61,7 +61,7 @@
 		1A1111042B5F123400000001 = {
 			isa = PBXGroup;
 			children = (
-				1A11110F2B5F123400000001 /* CaptainsLog */,
+				1A11110F2B5F123400000001,
 				1A11110E2B5F123400000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -74,7 +74,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A11110F2B5F123400000001 /* CaptainsLog */ = {
+		1A11110F2B5F123400000001 = {
 			isa = PBXGroup;
 			children = (
 				1A1111102B5F123400000001 /* CaptainsLogApp.swift */,
@@ -314,7 +314,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7SLW466P76;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Captain's Log needs access to the microphone to record voice entries.";
@@ -344,7 +344,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7SLW466P76;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Captain's Log needs access to the microphone to record voice entries.";

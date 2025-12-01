@@ -72,8 +72,7 @@ struct TranscriptionStatusView: View {
                             VStack(alignment: .leading) {
                                 Text("Queued: \\(queue.queueCount)")
                                     .font(.caption)
-                                Text("Processing: \\(queue.isProcessing ? "Yes" : "No")")
-                                    .font(.caption)
+                                Text("Processing: \(queue.isProcessing ? "Yes" : "No")")
                             }
                             Spacer()
                             VStack(alignment: .trailing) {
