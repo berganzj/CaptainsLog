@@ -63,7 +63,7 @@ class AudioManager: NSObject, ObservableObject {
     }
     
     func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {
-        recordingSession.requestRecordPermission { granted in
+        AVAudioApplication.requestRecordPermission { granted in
             DispatchQueue.main.async {
                 completion(granted)
             }

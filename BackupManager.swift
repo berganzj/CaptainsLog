@@ -10,6 +10,7 @@ import CoreData
 import CloudKit
 
 /// Manager for backing up and restoring voice recordings and transcriptions
+@MainActor
 class BackupManager: ObservableObject {
     @Published var isBackingUp = false
     @Published var isRestoring = false
@@ -37,13 +38,13 @@ class BackupManager: ObservableObject {
     
     /// Create full backup of all data
     func createBackup() async throws {
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isBackingUp = true
             self.backupProgress = 0.0
         }
         
         defer {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.isBackingUp = false
                 self.backupProgress = 0.0
             }
@@ -69,7 +70,7 @@ class BackupManager: ObservableObject {
         try createBackupMetadata(to: backupFolder)
         
         // Update last backup date
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.lastBackupDate = Date()
             self.saveLastBackupDate()
         }
@@ -143,13 +144,13 @@ class BackupManager: ObservableObject {
     
     /// Restore from backup
     func restoreBackup(from backupFolder: URL) async throws {
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isRestoring = true
             self.backupProgress = 0.0
         }
         
         defer {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.isRestoring = false
                 self.backupProgress = 0.0
             }

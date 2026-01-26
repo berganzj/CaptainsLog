@@ -30,7 +30,7 @@ class TranscriptionQueue: ObservableObject {
     func enqueue(_ entry: LogEntry) {
         guard entry.type == "voice",
               entry.audioTranscription == nil,
-              let filename = entry.audioFilename else {
+              entry.audioFilename != nil else {
             return
         }
         
@@ -138,7 +138,7 @@ class TranscriptionQueue: ObservableObject {
                             bgEntry.audioTranscription = transcription
                             print("✅ Transcription completed for: \\(filename)")
                         case .failure(let error):
-                            print("❌ Transcription failed for \\(filename): \\(error.localizedDescription)")
+                            print("❌ Transcription failed: \\(error.localizedDescription)")
                             // Don't save error state, allow retry later
                         }
                         
@@ -168,11 +168,10 @@ class TranscriptionQueue: ObservableObject {
     /// Get queue status summary
     func getQueueStatus() -> String {
         if isProcessing {
-            let remaining = queueCount
-            if let file = processingFile {
-                return "Processing \\(file)... (\\(remaining) remaining)"
+            if processingFile != nil {
+                return "Processing \\(processingFile ?? "")... (\\(queueCount) remaining)"
             } else {
-                return "Processing... (\\(remaining) remaining)"
+                return "Processing... (\\(queueCount) remaining)"
             }
         } else if queueCount > 0 {
             return "\\(queueCount) files queued for transcription"
