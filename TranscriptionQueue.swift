@@ -59,9 +59,9 @@ class TranscriptionQueue: ObservableObject {
             for entry in entriesNeedingTranscription {
                 enqueue(entry)
             }
-            print("Added \\(entriesNeedingTranscription.count) entries to transcription queue")
+            print("Added \(entriesNeedingTranscription.count) entries to transcription queue")
         } catch {
-            print("Error fetching entries for transcription: \\(error)")
+            print("Error fetching entries for transcription: \(error)")
         }
     }
     
@@ -136,9 +136,9 @@ class TranscriptionQueue: ObservableObject {
                         switch result {
                         case .success(let transcription):
                             bgEntry.audioTranscription = transcription
-                            print("✅ Transcription completed for: \\(filename)")
+                            print("✅ Transcription completed")
                         case .failure(let error):
-                            print("❌ Transcription failed: \\(error.localizedDescription)")
+                            print("❌ Transcription failed: \(error.localizedDescription)")
                             // Don't save error state, allow retry later
                         }
                         
@@ -147,7 +147,7 @@ class TranscriptionQueue: ObservableObject {
                         }
                     }
                 } catch {
-                    print("Error saving transcription: \\(error)")
+                    print("Error saving transcription: \(error)")
                 }
             }
             
@@ -174,7 +174,7 @@ class TranscriptionQueue: ObservableObject {
                 return "Processing... (\(queueCount) remaining)"
             }
         } else if queueCount > 0 {
-            return "\\(queueCount) files queued for transcription"
+            return "\(queueCount) files queued for transcription"
         } else {
             return "No files in transcription queue"
         }
