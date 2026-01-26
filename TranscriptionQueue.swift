@@ -168,10 +168,10 @@ class TranscriptionQueue: ObservableObject {
     /// Get queue status summary
     func getQueueStatus() -> String {
         if isProcessing {
-            if processingFile != nil {
-                return "Processing \\(processingFile ?? "")... (\\(queueCount) remaining)"
+            if let file = processingFile {
+                return "Processing \(file)... (\(queueCount) remaining)"
             } else {
-                return "Processing... (\\(queueCount) remaining)"
+                return "Processing... (\(queueCount) remaining)"
             }
         } else if queueCount > 0 {
             return "\\(queueCount) files queued for transcription"
