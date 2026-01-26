@@ -24,6 +24,7 @@
 		1A11112F2B5F130000000001 /* BackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A11112E2B5F130000000001 /* BackupManager.swift */; };
 		1A1111312B5F131000000001 /* BackupSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1111302B5F131000000001 /* BackupSettingsView.swift */; };
 		1A1111332B5F132000000001 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1111322B5F132000000001 /* SettingsTabView.swift */; };
+		1A1111352B5F133000000001 /* GlassmorphismModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1111342B5F133000000001 /* GlassmorphismModifiers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		1A11112E2B5F130000000001 /* BackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupManager.swift; sourceTree = "<group>"; };
 		1A1111302B5F131000000001 /* BackupSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSettingsView.swift; sourceTree = "<group>"; };
 		1A1111322B5F132000000001 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
+		1A1111342B5F133000000001 /* GlassmorphismModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassmorphismModifiers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +87,7 @@
 				1A11112C2B5F129000000001 /* TranscriptionStatusView.swift */,
 				1A1111322B5F132000000001 /* SettingsTabView.swift */,
 				1A1111302B5F131000000001 /* BackupSettingsView.swift */,
+				1A1111342B5F133000000001 /* GlassmorphismModifiers.swift */,
 				1A1111222B5F124000000001 /* AudioManager.swift */,
 				1A1111242B5F125000000001 /* AnalyticsManager.swift */,
 				1A1111262B5F126000000001 /* WhisperManager.swift */,
@@ -178,6 +181,7 @@
 				1A11112F2B5F130000000001 /* BackupManager.swift in Sources */,
 				1A1111312B5F131000000001 /* BackupSettingsView.swift in Sources */,
 				1A1111332B5F132000000001 /* SettingsTabView.swift in Sources */,
+				1A1111352B5F133000000001 /* GlassmorphismModifiers.swift in Sources */,
 				1A1111132B5F123400000001 /* ContentView.swift in Sources */,
 				1A1111212B5F124000000001 /* LogEntryRow.swift in Sources */,
 				1A11111F2B5F124000000001 /* HistoryView.swift in Sources */,

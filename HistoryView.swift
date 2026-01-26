@@ -32,35 +32,57 @@ struct HistoryView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(0.1),
+                        Color.purple.opacity(0.1),
+                        Color.pink.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
                 if allEntries.isEmpty {
                     Spacer()
-                    VStack(spacing: 16) {
-                        Image(systemName: "book.closed")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        
-                        Text("No log entries yet")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Start logging to build your history")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    GlassContainer(cornerRadius: 20, padding: 24) {
+                        VStack(spacing: 16) {
+                            Image(systemName: "book.closed")
+                                .font(.system(size: 60))
+                                .foregroundColor(.blue.opacity(0.6))
+                            
+                            Text("No log entries yet")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            
+                            Text("Start logging to build your history")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
+                    .padding()
                     Spacer()
                 } else {
-                    List {
-                        ForEach(sortedDates, id: \.self) { date in
-                            Section(header: Text(formatSectionDate(date))) {
-                                ForEach(groupedEntries[date] ?? []) { entry in
-                                    LogEntryRow(entry: entry)
-                                }
-                                .onDelete { offsets in
-                                    deleteEntries(offsets: offsets, from: groupedEntries[date] ?? [])
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(sortedDates, id: \.self) { date in
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(formatSectionDate(date))
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal)
+                                    
+                                    ForEach(groupedEntries[date] ?? []) { entry in
+                                        LogEntryRow(entry: entry)
+                                            .padding(.horizontal)
+                                    }
                                 }
                             }
                         }
+                        .padding(.vertical)
                     }
                 }
             }
@@ -71,6 +93,8 @@ struct HistoryView: View {
                     Button("Filter") {
                         showingDatePicker = true
                     }
+                    .glassButton()
+                    .foregroundColor(.white)
                 }
             }
             .onChange(of: dayTransitionManager.shouldRefreshToday) { shouldRefresh in
@@ -125,12 +149,28 @@ struct DateFilterView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
-                    .padding()
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(0.1),
+                        Color.purple.opacity(0.1),
+                        Color.pink.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
-                Spacer()
+                VStack {
+                    GlassContainer(cornerRadius: 20, padding: 24) {
+                        DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                            .datePickerStyle(GraphicalDatePickerStyle())
+                    }
+                    .padding()
+                    
+                    Spacer()
+                }
             }
             .navigationTitle("Filter by Date")
             .navigationBarTitleDisplayMode(.inline)
@@ -145,6 +185,8 @@ struct DateFilterView: View {
                         // TODO: Implement date filtering
                         presentationMode.wrappedValue.dismiss()
                     }
+                    .glassButton()
+                    .foregroundColor(.white)
                 }
             }
         }

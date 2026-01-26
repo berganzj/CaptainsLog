@@ -17,79 +17,76 @@ struct TranscriptionStatusView: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            if let queue = transcriptionQueue {
-                HStack {
-                    Image(systemName: "waveform.path")
-                        .foregroundColor(.blue)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Transcription Status")
-                            .font(.headline)
+        if let queue = transcriptionQueue {
+            GlassContainer(cornerRadius: 16, padding: 16) {
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: "waveform.path")
+                            .foregroundColor(.blue)
                         
-                        Text(queue.getQueueStatus())
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if queue.isProcessing {
-                        VStack(spacing: 4) {
-                            ProgressView()
-                                .scaleEffect(0.8)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Transcription Status")
+                                .font(.headline)
                             
-                            Text("\\(Int(queue.currentProgress * 100))%")
-                                .font(.caption2)
+                            Text(queue.getQueueStatus())
+                                .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                    }
-                    
-                    Button(action: { showingDetails.toggle() }) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.blue)
-                    }
-                }
-                .padding()
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(8)
-                
-                if showingDetails {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Queue Details")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            Spacer()
-                            Button("Process All") {
-                                audioManager.transcribeAllMissing()
+                        
+                        Spacer()
+                        
+                        if queue.isProcessing {
+                            VStack(spacing: 4) {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                
+                                Text("\(Int(queue.currentProgress * 100))%")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
                             }
-                            .font(.caption)
-                            .foregroundColor(.blue)
                         }
                         
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Queued: \\(queue.queueCount)")
-                                    .font(.caption)
-                                Text("Processing: \(queue.isProcessing ? "Yes" : "No")")
+                        Button(action: { showingDetails.toggle() }) {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    if showingDetails {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Queue Details")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Button("Process All") {
+                                    audioManager.transcribeAllMissing()
+                                }
+                                .font(.caption)
+                                .foregroundColor(.blue)
                             }
-                            Spacer()
-                            VStack(alignment: .trailing) {
-                                Text("Progress: \\(Int(queue.currentProgress * 100))%")
-                                    .font(.caption)
-                                if let file = queue.processingFile {
-                                    Text("File: \\(file)")
-                                        .font(.caption2)
-                                        .lineLimit(1)
-                                        .foregroundColor(.secondary)
+                            
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text("Queued: \(queue.queueCount)")
+                                        .font(.caption)
+                                    Text("Processing: \(queue.isProcessing ? "Yes" : "No")")
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing) {
+                                    Text("Progress: \(Int(queue.currentProgress * 100))%")
+                                        .font(.caption)
+                                    if let file = queue.processingFile {
+                                        Text("File: \(file)")
+                                            .font(.caption2)
+                                            .lineLimit(1)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }
+                        .padding(.top, 8)
                     }
-                    .padding()
-                    .background(Color.secondary.opacity(0.05))
-                    .cornerRadius(8)
                 }
             }
         }
@@ -116,7 +113,7 @@ struct TranscriptionIndicator: View {
                             .frame(width: 4, height: 4)
                     }
                     
-                    Text("\\(Int(confidence * 100))%")
+                    Text("\(Int(confidence * 100))%")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }

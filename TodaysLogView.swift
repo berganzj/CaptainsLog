@@ -33,71 +33,91 @@ struct TodaysLogView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                if todaysEntries.isEmpty {
-                    Spacer()
-                    VStack(spacing: 16) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        
-                        Text("No log entries today")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Begin your Captain's Log")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                } else {
-                    VStack {
-                        TranscriptionStatusView()
-                            .padding(.horizontal)
-                        
-                        List {
-                            ForEach(todaysEntries, id: \.id) { entry in
-                                LogEntryRow(entry: entry)
-                            }
-                            .onDelete(perform: deleteEntries)
-                        }
-                    }
-                }
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(0.1),
+                        Color.purple.opacity(0.1),
+                        Color.pink.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
-                // Entry input area
-                VStack(spacing: 12) {
-                    HStack(spacing: 16) {
-                        // Voice recording button
-                        Button(action: toggleRecording) {
-                            Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                                .font(.system(size: 40))
-                                .foregroundColor(isRecording ? .red : .blue)
+                VStack {
+                    if todaysEntries.isEmpty {
+                        Spacer()
+                        GlassContainer(cornerRadius: 20, padding: 24) {
+                            VStack(spacing: 16) {
+                                Image(systemName: "doc.text.magnifyingglass")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.blue.opacity(0.6))
+                                
+                                Text("No log entries today")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                
+                                Text("Begin your Captain's Log")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        .disabled(audioManager.isPlaying)
-                        
-                        // Text entry field
-                        TextField("Enter log entry...", text: $newTextEntry, axis: .vertical)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .lineLimit(1...4)
-                        
-                        // Add text entry button
-                        Button(action: addTextEntry) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.green)
+                        .padding()
+                        Spacer()
+                    } else {
+                        VStack {
+                            TranscriptionStatusView()
+                                .padding(.horizontal)
+                            
+                            ScrollView {
+                                VStack(spacing: 12) {
+                                    ForEach(todaysEntries, id: \.id) { entry in
+                                        LogEntryRow(entry: entry)
+                                    }
+                                }
+                                .padding()
+                            }
                         }
-                        .disabled(newTextEntry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    
+                    // Entry input area with glass effect
+                    GlassContainer(cornerRadius: 16, padding: 16) {
+                        VStack(spacing: 12) {
+                            HStack(spacing: 16) {
+                                // Voice recording button
+                                Button(action: toggleRecording) {
+                                    Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(isRecording ? .red : .blue)
+                                }
+                                .disabled(audioManager.isPlaying)
+                                
+                                // Text entry field
+                                TextField("Enter log entry...", text: $newTextEntry, axis: .vertical)
+                                    .glassTextField()
+                                    .lineLimit(1...4)
+                                
+                                // Add text entry button
+                                Button(action: addTextEntry) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 30))
+                                        .foregroundColor(.green)
+                                }
+                                .disabled(newTextEntry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
+                            
+                            if isRecording {
+                                Text("Recording... Tap stop to finish")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
                     .padding(.horizontal)
-                    
-                    if isRecording {
-                        Text("Recording... Tap stop to finish")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.bottom, 8)
-                    }
                 }
-                .padding(.bottom)
             }
             .navigationTitle("Today's Log")
             .navigationBarTitleDisplayMode(.large)

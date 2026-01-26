@@ -22,110 +22,111 @@ struct LogEntryRow: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header with stardate and time
-            HStack {
-                Text("Stardate \(entry.stardate ?? "Unknown")")
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                    .fontWeight(.medium)
-                
-                Spacer()
-                
-                Text(timeFormatter.string(from: entry.timestamp ?? Date()))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            // Content based on entry type
-            if entry.type == "text" {
-                HStack(alignment: .top) {
-                    Text(entry.content ?? "")
-                        .font(.body)
-                        .lineLimit(nil)
+        GlassContainer(cornerRadius: 16, padding: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Header with stardate and time
+                HStack {
+                    Text("Stardate \(entry.stardate ?? "Unknown")")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .fontWeight(.medium)
                     
                     Spacer()
                     
-                    Button(action: speakText) {
-                        Image(systemName: "speaker.wave.2.fill")
-                            .foregroundColor(.blue)
-                            .font(.title2)
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
+                    Text(timeFormatter.string(from: entry.timestamp ?? Date()))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-            } else if entry.type == "voice" {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "waveform")
-                            .foregroundColor(.orange)
-                            .font(.title2)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Voice Recording")
-                                .font(.body)
-                                .foregroundColor(.primary)
-                            
-                            TranscriptionIndicator(entry: entry)
-                        }
+                
+                // Content based on entry type
+                if entry.type == "text" {
+                    HStack(alignment: .top) {
+                        Text(entry.content ?? "")
+                            .font(.body)
+                            .lineLimit(nil)
                         
                         Spacer()
                         
-                        // Transcription toggle button
-                        if entry.audioTranscription != nil {
-                            Button(action: { showingTranscription.toggle() }) {
-                                Image(systemName: showingTranscription ? "text.bubble.fill" : "text.bubble")
-                                    .foregroundColor(.green)
-                                    .font(.title2)
+                        Button(action: speakText) {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .foregroundColor(.blue)
+                                .font(.title2)
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
+                    }
+                } else if entry.type == "voice" {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "waveform")
+                                .foregroundColor(.orange)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Voice Recording")
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                
+                                TranscriptionIndicator(entry: entry)
+                            }
+                            
+                            Spacer()
+                            
+                            // Transcription toggle button
+                            if entry.audioTranscription != nil {
+                                Button(action: { showingTranscription.toggle() }) {
+                                    Image(systemName: showingTranscription ? "text.bubble.fill" : "text.bubble")
+                                        .foregroundColor(.green)
+                                        .font(.title2)
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
+                            }
+                            
+                            Button(action: togglePlayback) {
+                                Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.title)
                             }
                             .buttonStyle(BorderlessButtonStyle())
                         }
                         
-                        Button(action: togglePlayback) {
-                            Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .foregroundColor(.blue)
-                                .font(.title)
-                        }
-                        .buttonStyle(BorderlessButtonStyle())
-                    }
-                    
-                    // Show transcription if available and toggled
-                    if showingTranscription, let transcription = entry.audioTranscription {
-                        HStack {
-                            Text(transcription)
-                                .font(.body)
-                                .padding(8)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(8)
-                            
-                            Button(action: { audioManager.speakText(transcription) }) {
-                                Image(systemName: "speaker.wave.2.fill")
-                                    .foregroundColor(.blue)
-                                    .font(.title2)
+                        // Show transcription if available and toggled
+                        if showingTranscription, let transcription = entry.audioTranscription {
+                            HStack {
+                                Text(transcription)
+                                    .font(.body)
+                                    .padding(8)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .cornerRadius(8)
+                                
+                                Button(action: { audioManager.speakText(transcription) }) {
+                                    Image(systemName: "speaker.wave.2.fill")
+                                        .foregroundColor(.blue)
+                                        .font(.title2)
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
                             }
-                            .buttonStyle(BorderlessButtonStyle())
                         }
-                    }
-                    
-                    // Transcription status
-                    if isTranscribing {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                            Text("Transcribing...")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        
+                        // Transcription status
+                        if isTranscribing {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                Text("Transcribing...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else if entry.audioTranscription == nil {
+                            Button("Transcribe") {
+                                transcribeAudio()
+                            }
+                            .font(.caption)
+                            .foregroundColor(.blue)
                         }
-                    } else if entry.audioTranscription == nil {
-                        Button("Transcribe") {
-                            transcribeAudio()
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
                     }
                 }
             }
         }
-        .padding(.vertical, 4)
         .onReceive(audioManager.$isPlaying) { playing in
             if !playing {
                 isPlaying = false
