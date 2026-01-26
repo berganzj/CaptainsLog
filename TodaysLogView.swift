@@ -121,8 +121,8 @@ struct TodaysLogView: View {
             }
             .navigationTitle("Today's Log")
             .navigationBarTitleDisplayMode(.large)
-            .onChange(of: dayTransitionManager.shouldRefreshToday) { shouldRefresh in
-                if shouldRefresh {
+            .onChange(of: dayTransitionManager.shouldRefreshToday) { oldValue, newValue in
+                if newValue {
                     // Force UI refresh when day changes
                     print("Day transition detected in TodaysLogView - refreshing")
                 }
@@ -150,7 +150,7 @@ struct TodaysLogView: View {
             let content = newTextEntry.trimmingCharacters(in: .whitespacesAndNewlines)
             
             // Basic analytics for current version (no ML dependencies)
-            let analytics = analyticsManager.analyzeTextEntry(content)
+            let _ = analyticsManager.analyzeTextEntry(content)
             
             let newEntry = LogEntry(context: viewContext)
             newEntry.id = UUID()
@@ -172,7 +172,7 @@ struct TodaysLogView: View {
         withAnimation {
             // Get audio duration for basic analytics
             let audioDuration = audioManager.lastRecordingDuration ?? 0.0
-            let analytics = analyticsManager.analyzeAudioEntry(
+            let _ = analyticsManager.analyzeAudioEntry(
                 filename: audioManager.lastRecordingFilename ?? "",
                 duration: audioDuration
             )

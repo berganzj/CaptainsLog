@@ -76,8 +76,8 @@ struct TranscriptionStatusView: View {
                                 VStack(alignment: .trailing) {
                                     Text("Progress: \(Int(queue.currentProgress * 100))%")
                                         .font(.caption)
-                                    if let file = queue.processingFile {
-                                        Text("File: \(file)")
+                                    if queue.processingFile != nil {
+                                        Text("File: \(queue.processingFile ?? "")")
                                             .font(.caption2)
                                             .lineLimit(1)
                                             .foregroundColor(.secondary)

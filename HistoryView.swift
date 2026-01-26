@@ -97,8 +97,8 @@ struct HistoryView: View {
                     .foregroundColor(.white)
                 }
             }
-            .onChange(of: dayTransitionManager.shouldRefreshToday) { shouldRefresh in
-                if shouldRefresh {
+            .onChange(of: dayTransitionManager.shouldRefreshToday) { oldValue, newValue in
+                if newValue {
                     // Force UI refresh when day changes for proper "Today"/"Yesterday" labels
                     print("Day transition detected in HistoryView - refreshing labels")
                 }
